@@ -3,7 +3,7 @@
     id="main-sidebar"
     v-model="sidebarDrawer"
     v-bar
-    color="#9D9D9D"
+    color="#e2e2e2"
     :expand-on-hover="expandOnHover"
     app
     clipped
