@@ -1,17 +1,17 @@
 <template>
   <v-list-item
-      :href="href"
-      :rel="href && href !== '#' ? 'noopener' : undefined"
-      :target="href && href !== '#' ? '_blank' : undefined"
-      :to="item.to"
-      active-class="white--text"
+    :href="href"
+    :rel="href && href !== '#' ? 'noopener' : undefined"
+    :target="href && href !== '#' ? '_blank' : undefined"
+    :to="item.to"
+    active-class="white--text"
   >
     <v-list-item-icon v-if="item.icon" class="icon">
-      <v-icon color="#f4f4f4">{{ item.icon }}</v-icon>
+      <v-icon color="black">{{ item.icon }}</v-icon>
     </v-list-item-icon>
-    <v-list-item-icon v-else/>
+    <v-list-item-icon v-else />
     <v-list-item-content v-if="item.title">
-      <v-list-item-title v-text="item.title"/>
+      <v-list-item-title style="color: black" v-text="item.title" />
     </v-list-item-content>
   </v-list-item>
 </template>

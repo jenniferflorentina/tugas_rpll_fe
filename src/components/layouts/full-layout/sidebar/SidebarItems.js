@@ -1,7 +1,10 @@
 export default [
-  { title: 'Home', icon: 'mdi-home', to: '/admin/index' },
-  { title: 'Expenses', icon: 'mdi-wallet', to: '/admin/expenses' },
-  { title: 'Transaction', icon: 'mdi-script-text', to: '/admin/transactions' },
-  { title: 'Product Stock', icon: 'mdi-cube-outline', to: '/admin/products' },
-  { title: 'General Ledger', icon: 'mdi-finance', to: '/admin/reports' },
+  {
+    title: 'Dashboard',
+    icon: 'mdi-view-dashboard-variant-outline',
+    to: '/admin/dashboard',
+  },
+  { title: 'Product', icon: 'mdi-cube-outline', to: '/admin/product' },
+  { title: 'Order', icon: 'mdi-cart-outline', to: '/admin/order' },
+  { title: 'Settings', icon: 'mdi-cog-outline', to: '/admin/setting' },
 ];

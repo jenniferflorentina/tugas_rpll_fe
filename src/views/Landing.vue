@@ -1,113 +1,117 @@
 <template>
-  <div>
-    <header-component />
-    <v-container fill-height>
-      <v-card
-        class="mx-auto my-12"
-        max-width="374"
-        v-for="(item, index) in items"
-        :key="index"
-      >
-        <v-img
-          v-if="item.ImageUrl !== ''"
-          height="250"
-          :src="item.ImageUrl"
-          @error="item.ImageUrl = 'https://cdn.vuetifyjs.com/images/cards/cooking.png'"
-        ></v-img>
-        <v-img
-          v-else
-          height="250"
-          src="https://cdn.vuetifyjs.com/images/cards/cooking.png"
-        ></v-img>
-
-        <v-card-title> {{ item.name }}</v-card-title>
-
-        <v-card-text>
-          <div>{{ item.description }}</div>
-        </v-card-text>
-
-        <v-divider class="mx-4"></v-divider>
-
-        <v-row justify="end">
-          <v-card-title>{{ formatCurrency(item.price) }}</v-card-title>
-          <v-card-actions>
+  <div class="back">
+    <v-container
+      class="page-wrapper d-flex align-center justify-center"
+      style="min-height: calc(100vh - 8rem)"
+      fluid
+    >
+      <v-row class="d-flex align-center justify-center">
+        <v-col cols="12" lg="4" md="4" sm="12">
+          <h1
+            class="pa-2"
+            align="center"
+            style="
+              background-color: #fbb329;
+              color: #ffffff;
+              border-radius: 20px;
+            "
+          >
+            Harapan Bangsa Market
+          </h1>
+          <v-form ref="form" @submit.prevent="submit()">
+            <v-text-field
+              id="auth-login-input-username"
+              v-model="username"
+              label="Username"
+              :rules="[validation.required('Username')]"
+              class="mt-4 custom-validation"
+              solo
+              append-icon="mdi-account-multiple"
+            />
+            <v-text-field
+              id="auth-login-input-password"
+              v-model="password"
+              label="Password"
+              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+              :rules="[validation.required('Password')]"
+              :type="showPassword ? 'text' : 'password'"
+              class="custom-validation"
+              solo
+              @click:append="showPassword = !showPassword"
+            />
             <v-btn
-              class="my-4 mr-5"
-              fab
-              dark
-              color="black"
+              id="auth-login-btn-submit"
+              justify-end
               rounded
-              @click="openPopUp(item)"
-              ><v-icon> mdi-cart</v-icon>
+              color="primary"
+              type="submit"
+            >
+              Login
             </v-btn>
-          </v-card-actions>
-        </v-row>
-      </v-card>
+          </v-form>
+        </v-col>
+      </v-row>
     </v-container>
-    <PopUp ref="PopUp" :refresh="refresh" />
   </div>
 </template>
+
 <script lang="ts">
 import Vue from 'vue';
-import { mapActions } from 'vuex';
-import HeaderComponent from '@/components/layouts/full-layout-user/header/Header.vue';
-import BaseService from '@/services/Base';
-import PopUp from './PopUp.vue';
+import { mapActions, mapGetters } from 'vuex';
+import validation from '@/validation';
 
 export default Vue.extend({
-  name: 'Index',
-  components: {
-    HeaderComponent,
-    PopUp,
-  },
-
+  name: 'Login',
   data: () => ({
-    // Data General,
-    items: [] as any[],
+    username: '',
+    password: '',
+    showPassword: false,
+    validation,
   }),
-
-  async created() {
-    this.setLoading(true);
-    await this.refresh();
-    this.setLoading(false);
+  computed: {
+    ...mapGetters(['token', 'authenticatedUser']),
   },
-
   methods: {
-    ...mapActions(['setLoading', 'setSnackbar']),
-    async refresh() {
+    ...mapActions(['signIn', 'setLoading', 'setSnackbar']),
+    async submit() {
+      if (!this.validate()) return;
+      this.setLoading(true);
+
+      const payload = {
+        username: this.username,
+        password: this.password,
+      };
+
       try {
-        await this.request('');
+        await this.signIn(payload);
+        if (this.token) {
+          if (this.authenticatedUser.role === 0) {
+            this.$router.push('/admin/dashboard');
+          } else {
+            this.$router.push('/manager/dashboard');
+          }
+        }
+        this.setLoading(false);
       } catch (e) {
+        this.setLoading(false);
         this.setSnackbar({
           isVisible: true,
           message: e,
           color: 'error',
         });
-      } finally {
-        this.setLoading(false);
       }
     },
-    async request(params) {
-      this.setLoading(true);
-      const service = new BaseService('/products');
-      const res = await service.get(params);
-      this.items = res.data;
-      this.$forceUpdate();
-    },
 
-    formatCurrency(value) {
-      const formatter = new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumSignificantDigits: 1,
-      });
-      return formatter.format(value);
-    },
-
-    openPopUp(item) {
-      const { PopUp }: any = this.$refs;
-      PopUp.startComment(item);
+    validate() {
+      return (this.$refs.form as Vue & { validate: () => boolean }).validate();
     },
   },
 });
 </script>
+
+<style>
+.back {
+  background-image: url(https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260);
+  background-size: cover;
+}
+</style>
