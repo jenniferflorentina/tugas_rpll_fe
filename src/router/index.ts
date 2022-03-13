@@ -4,12 +4,9 @@ import VueRouter, { RouteConfig } from 'vue-router';
 // layouts
 
 import Admin from '@/components/layouts/full-layout/Layout.vue';
-import User from '@/components/layouts/full-layout-user/Layout.vue';
+import Manager from '@/components/layouts/full-layout-manager/Layout.vue';
 
 // views for Auth layout
-
-import Login from '@/views/LoginPage.vue';
-import Register from '@/views/Register.vue';
 import History from '@/views/user/history/Index.vue';
 
 // views without layouts
@@ -23,64 +20,82 @@ const routes: Array<RouteConfig> = [
     component: Admin,
     children: [
       {
-        path: '/admin/index',
+        path: '/admin/dashboard',
+        component: () =>
+          import(/* webpackChunkName: "adminIndex" */ '@/views/Index.vue'),
+      },
+      {
+        path: '/admin/product',
         component: () =>
           import(
-            /* webpackChunkName: "adminIndex" */ '@/views/admin/Index.vue'
+            /* webpackChunkName: "adminProducts" */ '@/views/product/Index.vue'
           ),
       },
       {
-        path: '/admin/expenses',
+        path: '/admin/order',
         component: () =>
           import(
-            /* webpackChunkName: "adminExpenses" */ '@/views/admin/expenses/Index.vue'
+            /* webpackChunkName: "adminOrders" */ '@/views/order/Index.vue'
           ),
       },
       {
-        path: '/admin/transactions',
+        path: '/admin/setting',
         component: () =>
           import(
-            /* webpackChunkName: "adminTransactions" */ '@/views/admin/transactions/Index.vue'
-          ),
-      },
-      {
-        path: '/admin/products',
-        component: () =>
-          import(
-            /* webpackChunkName: "adminProducts" */ '@/views/admin/products/Index.vue'
-          ),
-      },
-      {
-        path: '/admin/reports',
-        component: () =>
-          import(
-            /* webpackChunkName: "adminReports" */ '@/views/admin/reports/Index.vue'
+            /* webpackChunkName: "adminSettings" */ '@/views/setting/Index.vue'
           ),
       },
     ],
   },
   {
-    path: '/user',
-    component: User,
+    path: '/manager',
+    component: Manager,
     children: [
       {
-        path: '/user/index',
+        path: '/manager/dashboard',
         component: () =>
-          import(/* webpackChunkName: "userIndex" */ '@/views/user/Index.vue'),
+          import(/* webpackChunkName: "managerIndex" */ '@/views/Index.vue'),
+      },
+      {
+        path: '/manager/order',
+        component: () =>
+          import(
+            /* webpackChunkName: "managerOrders" */ '@/views/order/Index.vue'
+          ),
+      },
+      {
+        path: '/manager/transaction',
+        component: () =>
+          import(
+            /* webpackChunkName: "managerTransactions" */ '@/views/manager/transaction/Index.vue'
+          ),
+      },
+      {
+        path: '/manager/product',
+        component: () =>
+          import(
+            /* webpackChunkName: "managerProducts" */ '@/views/product/Index.vue'
+          ),
+      },
+      {
+        path: '/manager/finance',
+        component: () =>
+          import(
+            /* webpackChunkName: "managerFinances" */ '@/views/manager/finance/Index.vue'
+          ),
+      },
+      {
+        path: '/manager/setting',
+        component: () =>
+          import(
+            /* webpackChunkName: "managerSettings" */ '@/views/setting/Index.vue'
+          ),
       },
     ],
   },
   {
     path: '/history',
     component: History,
-  },
-  {
-    path: '/login',
-    component: Login,
-  },
-  {
-    path: '/register',
-    component: Register,
   },
   {
     path: '/',
