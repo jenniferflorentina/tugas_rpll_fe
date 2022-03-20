@@ -111,7 +111,7 @@ export default Vue.extend({
 
 <style>
 .back {
-  background-image: url(https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260);
+  background-image: url('../assets/image/market.png');
   background-size: cover;
 }
 </style>
