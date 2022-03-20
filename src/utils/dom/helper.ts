@@ -2,13 +2,14 @@
 import Vue, { VueConstructor } from 'vue';
 
 export const setTitle = (title) => {
-  document.title = `TubesPBBO - ${title}`;
+  document.title = `HarapanBangsaMarket - ${title}`;
 };
 
-export const currency = (value) => value
-  .toFixed(0)
-  .toString()
-  .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+export const currency = (value) =>
+  value
+    .toFixed(0)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 declare module 'vue/types/vue' {
   interface Vue {
