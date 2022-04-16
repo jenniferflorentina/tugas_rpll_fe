@@ -54,8 +54,55 @@
           </v-card>
         </v-container>
       </v-col>
+      <v-col cols="3" lg="3" md="3" sm="6">
+        <v-form class="px-4 pt-4" ref="form" @submit.prevent="save()">
+          <v-card
+            class="mx-auto mb-4"
+            v-for="(item, index) in arrDetail"
+            :key="index"
+            outlined
+          >
+            <v-card-title> {{ item.data.name }}</v-card-title>
+            <v-card-text> {{ formatCurrency(item.data.price) }}</v-card-text>
+            <v-card-actions>
+              <v-btn
+                v-if="item.quantity > 1"
+                class="my-4"
+                fab
+                icon
+                rounded
+                small
+              >
+                <v-icon> mdi-minus</v-icon>
+              </v-btn>
+              <v-btn class="my-4" fab dark color="black" rounded
+                >{{ item.quantity }}
+              </v-btn>
+              <v-btn class="my-4" fab rounded small icon>
+                <v-icon> mdi-plus</v-icon>
+              </v-btn>
+              <v-btn
+                fab
+                rounded
+                icon
+                color="error"
+                @click="promptDeleteItem(item)"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-form>
+        <v-card-actions>
+          <v-btn block dark color="black" @click="save()"> Bayar </v-btn>
+        </v-card-actions>
+      </v-col>
     </v-row>
     <DigitalDialog ref="openDigitalDialog" :formatCurrency="formatCurrency" />
+    <TransactionDialog
+      ref="openTransactionDialog"
+      :formatCurrency="formatCurrency"
+    />
   </v-breadcrumbs>
 </template>
 <script lang="ts">
@@ -63,10 +110,11 @@ import Vue from 'vue';
 import { mapActions, mapGetters } from 'vuex';
 import BaseService from '@/services/Base';
 import DigitalDialog from '@/views/order/DigitalDialog.vue';
+import TransactionDialog from '@/views/order/TransactionDialog.vue';
 
 export default Vue.extend({
   name: 'IndexManager',
-  components: { DigitalDialog },
+  components: { DigitalDialog, TransactionDialog },
   data: () => ({
     items: [] as any[],
     tabItems: [
@@ -78,6 +126,8 @@ export default Vue.extend({
       { text: 'Kecantikan', icon: 'mdi-face-woman-shimmer' },
     ],
     tab: 0,
+    arrDetail: [] as any[],
+    itemBuy: [] as any,
   }),
 
   async created() {
@@ -134,9 +184,48 @@ export default Vue.extend({
       if (item.productCategoryId === 1) {
         const { openDigitalDialog }: any = this.$refs;
         openDigitalDialog.startForm(item);
+      } else {
+        this.fetchProductOrder(item.id);
       }
+      this.$forceUpdate();
     },
 
+    async fetchProductOrder(id) {
+      const service = new BaseService('/products');
+      const res = await service.getOne(id);
+      this.arrDetail.push({
+        data: res.data,
+        quantity: 1,
+      });
+      this.$forceUpdate();
+    },
+    promptDeleteItem(item) {
+      const index = this.arrDetail.indexOf(item);
+      if (index !== -1) {
+        this.arrDetail.splice(index, 1);
+      }
+    },
+    async save() {
+      try {
+        this.setLoading(true);
+        const { openTransactionDialog }: any = this.$refs;
+        for (let i = 0; i < this.arrDetail.length; i += 1) {
+          this.itemBuy.push({
+            productId: this.arrDetail[i].data.id,
+            quantity: this.arrDetail[i].quantity,
+          });
+        }
+        openTransactionDialog.startForm(this.itemBuy);
+        this.setLoading(false);
+      } catch (e) {
+        this.setLoading(false);
+        this.setSnackbar({
+          isVisible: true,
+          message: e,
+          color: 'danger',
+        });
+      }
+    },
     formatCurrency(value) {
       const formatter = new Intl.NumberFormat('id-ID', {
         style: 'currency',

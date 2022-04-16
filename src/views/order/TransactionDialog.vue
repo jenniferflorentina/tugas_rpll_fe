@@ -7,7 +7,7 @@
   >
     <v-card class="pb-4">
       <v-toolbar class="px-4">
-        <v-toolbar-title> Digital Top-Up </v-toolbar-title>
+        <v-toolbar-title> Apakah memiliki member ? </v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon @click="isOpen = false">
           <v-icon>mdi-close</v-icon>
@@ -16,27 +16,6 @@
 
       <v-card-text class="mb-4 mt-6">
         <v-form class="px-4 pt-4" ref="form" @submit.prevent="save()">
-          <h2>{{ items.name }}</h2>
-          <v-card-text class="px-0">
-            Silahkan tawarkan nominal di bawah ini !</v-card-text
-          >
-
-          <v-row align="center" justify="center">
-            <v-col
-              class="pb-0"
-              cols="4"
-              lg="4"
-              v-for="value in buttonChoice"
-              :key="value"
-            >
-              <v-btn block color="primary" @click="buyItem(value)">{{
-                formatCurrency(value)
-              }}</v-btn>
-            </v-col>
-          </v-row>
-          <v-card-text class="mt-6 px-0" disabled>{{
-            formatCurrency(quantity)
-          }}</v-card-text>
           <v-autocomplete
             v-model="members.value"
             class="pa-0"
@@ -49,6 +28,7 @@
             clearable
           />
           <v-card-actions>
+            <v-spacer />
             <v-btn outlined large @click="save()">Bayar</v-btn>
           </v-card-actions>
         </v-form>
@@ -71,18 +51,7 @@ export default Vue.extend({
   data: () => ({
     isOpen: false,
     id: '',
-    items: [] as any,
-    buttonChoice: [
-      '25000',
-      '50000',
-      '100000',
-      '150000',
-      '200000',
-      '300000',
-      '500000',
-      '750000',
-      '1000000',
-    ],
+    items: [],
     members: {
       label: 'Member',
       type: 'autocomplete',
@@ -91,7 +60,6 @@ export default Vue.extend({
       rules: [],
     },
     service: new BaseService(),
-    quantity: 0,
     transaksiId: '',
   }),
 
@@ -121,23 +89,32 @@ export default Vue.extend({
       paymentDetail.startForm(id, memberId);
     },
 
-    buyItem(value) {
-      this.quantity = Number(value);
+    async setupPayload() {
+      const details = [] as any;
+      // eslint-disable-next-line no-plusplus
+      for (let index = 0; index < this.items.length; index++) {
+        details.push(this.payloadProduct(this.items[index]));
+      }
+      const payload = {
+        memberId: this.members.value ? this.members.value : null,
+        details,
+      };
+      return payload;
+    },
+
+    payloadProduct(item) {
+      const payload = {
+        productId: item.productId,
+        quantity: Number(item.quantity),
+      };
+      return payload;
     },
 
     async save() {
       try {
         this.setLoading(true);
         this.service = new BaseService('/transactions');
-        const payload = {
-          memberId: this.members.value ? this.members.value : null,
-          details: [
-            {
-              productId: this.items.id,
-              quantity: this.quantity,
-            },
-          ],
-        };
+        const payload = await this.setupPayload();
         const res = await this.service.post(payload);
         this.transaksiId = res.data.Id;
         this.isOpen = false;
