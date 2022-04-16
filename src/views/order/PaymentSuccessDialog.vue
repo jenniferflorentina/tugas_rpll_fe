@@ -4,9 +4,6 @@
       <v-card-text class="pt-3 text-h5 font-weight-bold">
         Pembayaran Berhasil!
       </v-card-text>
-      <v-card-text>
-        Terima kasih {{ authenticatedUser.name }} sudah berbelanja di Calleryna
-      </v-card-text>
       <v-card-actions class="pb-4">
         <v-spacer />
         <v-btn @click="showModal = false">close</v-btn>

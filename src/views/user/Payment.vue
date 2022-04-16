@@ -105,7 +105,7 @@
 import Vue from 'vue';
 import { mapActions, mapGetters } from 'vuex';
 import BaseService from '@/services/Base';
-import PopUp from '@/views/user/PaymentSuccessDialog.vue';
+import PopUp from '@/views/order/PaymentSuccessDialog.vue';
 
 export default Vue.extend({
   name: 'PaymentDialog',
