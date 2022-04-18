@@ -75,7 +75,12 @@
                     }}</v-card-title>
                   </v-col>
                   <v-col cols="4">
-                    <v-card-title>Quantity : {{ item.quantity }}</v-card-title>
+                    <v-text-field
+                      v-model="item.quantity"
+                      :label="createFields.quantity.label"
+                      disabled
+                      outlined
+                    ></v-text-field>
                   </v-col>
                 </v-row>
               </v-card>
@@ -181,13 +186,13 @@ export default Vue.extend({
 
     fillForm(item: any) {
       if (!item) return;
-      const { status, member, createdAt, transactionDetails } = item;
+      const { status, member, createdAt, details } = item;
       const dataObj = {
         status,
         name: member.name,
         telephone: member.telephone,
         createdAt,
-        product: transactionDetails,
+        product: details,
       };
 
       const keys = Object.keys(dataObj);

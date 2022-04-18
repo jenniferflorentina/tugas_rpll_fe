@@ -14,7 +14,7 @@
             <v-card>
               <div class="d-flex flex-no-wrap">
                 <v-avatar class="ma-3" size="125" tile>
-                  <v-img src="@/assets/image/HB_MARKET.png"></v-img>
+                  <image-view :imageUrl="item.imageurl"></image-view>
                 </v-avatar>
                 <div>
                   <v-card-title> {{ item.name }}</v-card-title>
@@ -69,10 +69,11 @@ import Vue from 'vue';
 import { mapActions, mapGetters } from 'vuex';
 import BaseService from '@/services/Base';
 import DigitalDialog from '@/views/order/DigitalDialog.vue';
+import ImageView from '@/components/atom/ImageView.vue';
 
 export default Vue.extend({
   name: 'IndexManager',
-  components: { DigitalDialog },
+  components: { DigitalDialog, ImageView },
   data: () => ({
     items: [] as any[],
     digitalItems: [] as any[],

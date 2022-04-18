@@ -13,7 +13,7 @@
               </v-tab>
             </v-tabs>
           </div>
-          <v-card v-for="(item, index) in items" :key="index">
+          <v-card v-for="(item, index) in items.slice().reverse()" :key="index">
             <v-row no-gutters>
               <v-col cols="2.5" align-self="center" class="ml-2">
                 <v-card-text>Transaction {{ item.id }}</v-card-text>
