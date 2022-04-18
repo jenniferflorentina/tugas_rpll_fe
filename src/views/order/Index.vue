@@ -1,7 +1,7 @@
 <template>
   <v-breadcrumbs class="container">
     <v-row class="d-flex">
-      <v-col cols="9" lg="9" md="9" sm="6">
+      <v-col cols="8" lg="8" md="8" sm="6">
         <h2>Order</h2>
         <div>
           <v-tabs
@@ -17,20 +17,20 @@
           </v-tabs>
         </div>
       </v-col>
-      <v-col cols="3" lg="3" md="3" sm="6">
+      <v-col cols="4" lg="4" md="4" sm="6">
         <h2>Detail Order</h2>
       </v-col>
-      <v-col cols="9" lg="9" md="9" sm="6">
+      <v-col cols="8" lg="8" md="8" sm="6">
         <v-container class="fill-height">
           <v-card
             class="mx-auto mb-4"
-            max-width="180"
+            max-width="15rem"
             v-for="(item, index) in items"
             :key="index"
             outlined
           >
             <div>
-              <v-img height="150" src="@/assets/image/HB_MARKET.png"></v-img>
+              <image-view :imageUrl="item.imageurl"></image-view>
             </div>
             <v-card-title> {{ item.name }}</v-card-title>
             <v-card-text> {{ formatCurrency(item.price) }}</v-card-text>
@@ -54,7 +54,7 @@
           </v-card>
         </v-container>
       </v-col>
-      <v-col cols="3" lg="3" md="3" sm="6">
+      <v-col cols="4" lg="4" md="4" sm="6">
         <v-form class="px-4 pt-4" ref="form" @submit.prevent="save()">
           <v-card
             class="mx-auto mb-4"
@@ -62,35 +62,45 @@
             :key="index"
             outlined
           >
-            <v-card-title> {{ item.data.name }}</v-card-title>
-            <v-card-text> {{ formatCurrency(item.data.price) }}</v-card-text>
-            <v-card-actions>
-              <v-btn
-                v-if="item.quantity > 1"
-                class="my-4"
-                fab
-                icon
-                rounded
-                small
-              >
-                <v-icon> mdi-minus</v-icon>
-              </v-btn>
-              <v-btn class="my-4" fab dark color="black" rounded
-                >{{ item.quantity }}
-              </v-btn>
-              <v-btn class="my-4" fab rounded small icon>
-                <v-icon> mdi-plus</v-icon>
-              </v-btn>
-              <v-btn
-                fab
-                rounded
-                icon
-                color="error"
-                @click="promptDeleteItem(item)"
-              >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
-            </v-card-actions>
+            <v-row>
+              <v-col cols="6">
+                <v-card-title> {{ item.data.name }}</v-card-title>
+                <v-card-text>
+                  {{ formatCurrency(item.data.price) }}</v-card-text
+                >
+              </v-col>
+              <v-col cols="6" class="justify-end">
+                <v-card-actions>
+                  <v-btn
+                    v-if="item.quantity > 1"
+                    fab
+                    icon
+                    rounded
+                    x-small
+                    class="mt-3"
+                  >
+                    <v-icon> mdi-minus</v-icon>
+                  </v-btn>
+                  <v-btn class="mt-3" fab dark color="black" small rounded
+                    >{{ item.quantity }}
+                  </v-btn>
+                  <v-btn class="mt-3" fab rounded x-small icon>
+                    <v-icon> mdi-plus</v-icon>
+                  </v-btn>
+                  <v-btn
+                    class="mt-3"
+                    fab
+                    rounded
+                    icon
+                    x-small
+                    color="error"
+                    @click="promptDeleteItem(item)"
+                  >
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </v-card-actions>
+              </v-col>
+            </v-row>
           </v-card>
         </v-form>
         <v-card-actions>
@@ -111,10 +121,11 @@ import { mapActions, mapGetters } from 'vuex';
 import BaseService from '@/services/Base';
 import DigitalDialog from '@/views/order/DigitalDialog.vue';
 import TransactionDialog from '@/views/order/TransactionDialog.vue';
+import ImageView from '@/components/atom/ImageView.vue';
 
 export default Vue.extend({
   name: 'IndexManager',
-  components: { DigitalDialog, TransactionDialog },
+  components: { DigitalDialog, TransactionDialog, ImageView },
   data: () => ({
     items: [] as any[],
     tabItems: [
