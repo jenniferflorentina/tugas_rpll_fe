@@ -69,8 +69,8 @@
                   {{ formatCurrency(item.data.price) }}</v-card-text
                 >
               </v-col>
-              <v-col cols="6" class="justify-end">
-                <v-card-actions>
+              <v-col cols="6">
+                <v-card-actions class="justify-end">
                   <v-btn
                     v-if="item.quantity > 1"
                     fab
@@ -78,13 +78,21 @@
                     rounded
                     x-small
                     class="mt-3"
+                    @click="changeQuantity(item, false)"
                   >
                     <v-icon> mdi-minus</v-icon>
                   </v-btn>
                   <v-btn class="mt-3" fab dark color="black" small rounded
                     >{{ item.quantity }}
                   </v-btn>
-                  <v-btn class="mt-3" fab rounded x-small icon>
+                  <v-btn
+                    class="mt-3"
+                    fab
+                    rounded
+                    x-small
+                    icon
+                    @click="changeQuantity(item, true)"
+                  >
                     <v-icon> mdi-plus</v-icon>
                   </v-btn>
                   <v-btn
@@ -139,6 +147,7 @@ export default Vue.extend({
     tab: 0,
     arrDetail: [] as any[],
     itemBuy: [] as any,
+    quantity: 0,
   }),
 
   async created() {
@@ -210,6 +219,27 @@ export default Vue.extend({
       });
       this.$forceUpdate();
     },
+
+    async changeQuantity(item, isPlus) {
+      try {
+        const index = this.arrDetail.indexOf(item);
+        const newQuantity = {
+          data: item.data,
+          quantity: isPlus ? item.quantity + 1 : item.quantity - 1,
+        };
+        this.arrDetail.splice(index, 1, newQuantity);
+        this.$forceUpdate();
+      } catch (e) {
+        this.setSnackbar({
+          isVisible: true,
+          message: e,
+          color: 'error',
+        });
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
     promptDeleteItem(item) {
       const index = this.arrDetail.indexOf(item);
       if (index !== -1) {
