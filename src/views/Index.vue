@@ -27,9 +27,30 @@
       </v-col>
       <v-col cols="4" lg="4" md="4" sm="6">
         <h4>Promo</h4>
-        <v-row class="mt-3" style="overflow-y: scroll; max-height: 50%">
-          <v-col v-for="(item, i) in items" :key="i" cols="6">
-            <v-card> </v-card>
+        <v-row class="mt-3" style="overflow-y: scroll; max-height: 30%">
+          <v-col v-for="(item, i) in promotionItems" :key="i" cols="12">
+            <v-card class="mb-2">
+              <v-row>
+                <v-col cols="10">
+                  <v-card-title> {{ item.type }}</v-card-title>
+                </v-col>
+                <v-col cols="2">
+                  <v-card-actions class="justify-end mr-2">
+                    <v-btn
+                      fab
+                      dark
+                      color="black"
+                      rounded
+                      small
+                      icon
+                      @click="openDetail(item)"
+                    >
+                      <v-icon> mdi-cog</v-icon>
+                    </v-btn>
+                  </v-card-actions>
+                </v-col>
+              </v-row>
+            </v-card>
           </v-col>
         </v-row>
         <v-spacer />
@@ -62,6 +83,10 @@
       </v-col>
     </v-row>
     <DigitalDialog ref="openDigitalDialog" :formatCurrency="formatCurrency" />
+    <PromotionDialog
+      ref="openPromotionDialog"
+      :formatCurrency="formatCurrency"
+    />
   </v-breadcrumbs>
 </template>
 <script lang="ts">
@@ -69,14 +94,16 @@ import Vue from 'vue';
 import { mapActions, mapGetters } from 'vuex';
 import BaseService from '@/services/Base';
 import DigitalDialog from '@/views/order/DigitalDialog.vue';
+import PromotionDialog from '@/views/PromotionDialog.vue';
 import ImageView from '@/components/atom/ImageView.vue';
 
 export default Vue.extend({
   name: 'IndexManager',
-  components: { DigitalDialog, ImageView },
+  components: { DigitalDialog, ImageView, PromotionDialog },
   data: () => ({
     items: [] as any[],
     digitalItems: [] as any[],
+    promotionItems: [] as any[],
   }),
 
   async created() {
@@ -95,6 +122,7 @@ export default Vue.extend({
       try {
         await this.request('');
         await this.fetchDigital('');
+        await this.fetchPromotions('');
       } catch (e) {
         this.setSnackbar({
           isVisible: true,
@@ -119,9 +147,20 @@ export default Vue.extend({
         (item) => item.productCategoryId === 1
       );
     },
+    async fetchPromotions(params) {
+      this.setLoading(true);
+      const service = new BaseService('/promotions');
+      const res = await service.get(params);
+      this.promotionItems = res.data;
+    },
     async buyItem(item) {
       const { openDigitalDialog }: any = this.$refs;
       openDigitalDialog.startForm(item);
+      this.$forceUpdate();
+    },
+    async openDetail(item) {
+      const { openPromotionDialog }: any = this.$refs;
+      openPromotionDialog.startForm(item);
       this.$forceUpdate();
     },
     formatCurrency(value) {
