@@ -63,7 +63,7 @@ export default Vue.extend({
     transactionDetails: '',
     items: [] as any[],
     service: new BaseService(),
-    tabItems: ['Finish', 'On Process'],
+    tabItems: ['Finish'],
     tab: 0,
   }),
 
@@ -96,17 +96,7 @@ export default Vue.extend({
       this.setLoading(true);
       const service = new BaseService('/transactions');
       const res = await service.get(params);
-      switch (this.tab) {
-        case 1:
-          this.items = res.data.filter((item) => item.status === 2);
-          break;
-        case 2:
-          this.items = res.data.filter((item) => item.status === 1);
-          break;
-        default:
-          this.items = res.data;
-          break;
-      }
+      this.items = res.data;
       this.$forceUpdate();
     },
 
