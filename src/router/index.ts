@@ -45,6 +45,13 @@ const routes: Array<RouteConfig> = [
             /* webpackChunkName: "adminSettings" */ '@/views/setting/Index.vue'
           ),
       },
+      {
+        path: '/admin/member',
+        component: () =>
+          import(
+            /* webpackChunkName: "adminMemberSetting" */ '@/views/setting/member/Index.vue'
+          ),
+      },
     ],
   },
   {
@@ -89,6 +96,13 @@ const routes: Array<RouteConfig> = [
         component: () =>
           import(
             /* webpackChunkName: "managerSettings" */ '@/views/setting/Index.vue'
+          ),
+      },
+      {
+        path: '/manager/member',
+        component: () =>
+          import(
+            /* webpackChunkName: "managerMemberSetting" */ '@/views/setting/member/Index.vue'
           ),
       },
     ],
