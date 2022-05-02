@@ -10,7 +10,7 @@
           color="primary"
           @click="openCreateForm(null, 'add')"
         >
-          <v-card-text>Tambah Promo</v-card-text>
+          <v-card-text>Add Promo</v-card-text>
           <v-icon small>mdi-card-plus-outline</v-icon>
         </v-btn>
       </v-col>
@@ -74,7 +74,6 @@ export default Vue.extend({
     id: '',
     title: '',
     items: [] as any[],
-
     item: [] as any[],
     promotionDetails: [] as any,
     service: new BaseService(),
@@ -91,18 +90,6 @@ export default Vue.extend({
         value: '',
         formatted: '',
         showModal: false,
-        rules: [],
-      },
-      name: {
-        label: 'Nama Produk',
-        type: '',
-        value: '',
-        rules: [],
-      },
-      code: {
-        label: 'Code Produk',
-        type: '',
-        value: '',
         rules: [],
       },
     },

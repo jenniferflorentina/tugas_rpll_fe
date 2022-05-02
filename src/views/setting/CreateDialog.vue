@@ -1,13 +1,13 @@
 <template>
   <v-dialog
     v-model="isOpen"
-    max-width="70rem"
+    max-width="50rem"
     scrollable
     transition="dialog-bottom-transition"
   >
     <v-card class="pb-4">
       <v-toolbar class="px-4">
-        <v-toolbar-title>{{ title }} Promo</v-toolbar-title>
+        <v-toolbar-title>{{ title }}Add Promo</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn icon @click="isOpen = false">
           <v-icon>mdi-close</v-icon>
@@ -17,14 +17,14 @@
       <v-card-text class="mb-4 mt-6">
         <v-form class="px-4 pt-4" ref="form" @submit.prevent="save()">
           <v-row align="center" justify="center">
-            <v-col class="pb-0" cols="12" lg="12">
+            <v-col class="pb-0" cols="6" lg="6">
               <v-text-field
                 v-model="createFields.type.value"
                 :label="createFields.type.label"
                 outlined
               />
             </v-col>
-            <v-col class="pb-0" cols="12" lg="12">
+            <v-col class="pb-0" cols="6" lg="6">
               <v-menu
                 v-model="createFields.validUntil.showModal"
                 :close-on-content-click="false"
@@ -53,29 +53,41 @@
                 />
               </v-menu>
             </v-col>
+          </v-row>
+          <v-row v-for="(item, index) in details" :key="index">
             <v-col class="pb-0" cols="12" lg="12">
-              <v-text-field
-                v-model="createFields.name.value"
-                :label="createFields.name.label"
-                :rules="createFields.name.rules"
-                outlined
+              <v-select
+                v-model="item.name.value"
+                :items="item.name.items"
+                item-text="name"
+                item-value="id"
+                :label="item.name.label"
+                :rules="item.name.rules"
+                clearable
               />
             </v-col>
             <v-col class="pb-0" cols="12" lg="12">
               <v-text-field
-                v-model="createFields.code.value"
-                :label="createFields.code.label"
-                :rules="createFields.code.rules"
+                v-model="item.discount.value"
+                :label="item.discount.label"
+                :rules="item.discount.rules"
+                type="number"
                 outlined
               />
             </v-col>
           </v-row>
+          <v-btn class="mr-3" @click="remove(index)">remove</v-btn>
+          <v-btn @click="add()">add</v-btn>
         </v-form>
       </v-card-text>
 
       <v-card-actions>
         <v-spacer />
-        <v-btn v-if="type !== 'detail'" color="primary" @click="save()"
+        <v-btn
+          class="mr-6"
+          v-if="type !== 'detail'"
+          color="primary"
+          @click="save()"
           >Save</v-btn
         >
       </v-card-actions>
@@ -98,16 +110,24 @@ export default Vue.extend({
     type: '',
     title: '',
     items: [],
-    promotionId: 0,
-  }),
-
-  watch: {
-    type: {
-      async handler() {
-        this.title = this.type[0].toUpperCase() + this.type.substring(1);
+    details: [
+      {
+        name: {
+          label: 'Nama Produk',
+          type: 'select',
+          items: [],
+          value: null,
+          rules: [],
+        },
+        discount: {
+          label: 'Discount',
+          type: '',
+          value: null,
+          rules: [],
+        },
       },
-    },
-  },
+    ],
+  }),
 
   async created() {
     this.setLoading(true);
@@ -117,24 +137,10 @@ export default Vue.extend({
   methods: {
     ...mapActions(['setLoading', 'setSnackbar']),
 
-    async startForm(item, type: string) {
+    async startForm(type: string) {
       this.isOpen = true;
       this.type = type;
-      await this.fetchPromotion(item);
-    },
-
-    fillForm(item: any) {
-      if (!item) return;
-      const { type, validUntil } = item;
-      const dataObj = {
-        type,
-        validUntil,
-      };
-      const keys = Object.keys(dataObj);
-      for (let i = 0; i < keys.length; i += 1) {
-        this.createFields[keys[i]].value = dataObj[keys[i]];
-      }
-      this.formatDatePicker(this.createFields.validUntil);
+      await this.fetchProduct(0);
     },
 
     onButtonClick(label) {
@@ -143,19 +149,48 @@ export default Vue.extend({
 
     async setupPayload() {
       const details = [] as any;
-      details.post(this.payloadProduct(this.items));
+      // eslint-disable-next-line no-plusplus
+      for (let index = 0; index < this.details.length; index++) {
+        details.push(this.payloadProduct(this.details[index]));
+      }
       const payload = {
         type: this.createFields.type.value,
         validUntil: this.createFields.validUntil.value,
+        details,
       };
       return payload;
     },
     payloadProduct(item) {
       const payload = {
-        name: item.name,
-        code: item.code,
+        productId: item.name.value,
+        discount: parseInt(item.discount.value, 0),
       };
       return payload;
+    },
+
+    async add() {
+      this.details.push({
+        name: {
+          label: 'Nama Produk',
+          type: 'select',
+          items: [],
+          value: null,
+          rules: [],
+        },
+        discount: {
+          label: 'Discount',
+          type: '',
+          value: null,
+          rules: [],
+        },
+      });
+      await this.fetchProduct(this.details.length - 1);
+    },
+
+    remove(index) {
+      if (index !== -1) {
+        this.details.splice(index, 1);
+      }
     },
 
     async save() {
@@ -182,10 +217,11 @@ export default Vue.extend({
       }
     },
 
-    async fetchPromotion(id) {
-      const service = new BaseService(`/promotions/${id}/details`);
-      const res = await service.get();
-      this.items = res.data;
+    async fetchProduct(index) {
+      const service = new BaseService('/products');
+      const res = await service.get('');
+      this.details[index].name.items = res.data;
+      this.$forceUpdate();
     },
     discountPrice(oldPrice, discountPrice) {
       return this.formatCurrency(oldPrice - discountPrice);
