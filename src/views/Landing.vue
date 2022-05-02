@@ -2,7 +2,7 @@
   <div class="back">
     <v-container
       class="page-wrapper d-flex align-center justify-center"
-      style="min-height: calc(100vh - 8rem)"
+      style="min-height: calc(100vh)"
       fluid
     >
       <v-row class="d-flex align-center justify-center">
@@ -112,6 +112,8 @@ export default Vue.extend({
 <style>
 .back {
   background-image: url('../assets/image/market.png');
+  background-position: center;
+  background-repeat: no-repeat;
   background-size: cover;
 }
 </style>
