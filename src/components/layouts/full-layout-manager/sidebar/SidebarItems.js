@@ -12,5 +12,6 @@ export default [
     to: '/manager/transaction',
   },
   { title: 'Finance', icon: 'mdi-finance', to: '/manager/finance' },
+  { title: 'Member', icon: 'mdi-account-group', to: '/manager/member' },
   { title: 'Setting', icon: 'mdi-cog-outline', to: '/manager/setting' },
 ];
