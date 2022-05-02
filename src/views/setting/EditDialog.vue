@@ -1,7 +1,7 @@
 <template>
   <v-dialog
     v-model="isOpen"
-    max-width="70rem"
+    max-width="50rem"
     scrollable
     transition="dialog-bottom-transition"
   >
@@ -17,7 +17,7 @@
       <v-card-text class="mb-4 mt-6">
         <v-form class="px-4 pt-4" ref="form" @submit.prevent="save()">
           <v-row align="center" justify="center">
-            <v-col class="pb-0" cols="12" lg="12">
+            <v-col class="pb-0" cols="6" lg="6">
               <v-text-field
                 v-model="createFields.type.value"
                 :label="createFields.type.label"
@@ -25,7 +25,7 @@
                 outlined
               />
             </v-col>
-            <v-col class="pb-0" cols="12" lg="12">
+            <v-col class="pb-0" cols="6" lg="6">
               <v-menu
                 v-model="createFields.validUntil.showModal"
                 :close-on-content-click="false"
@@ -59,12 +59,7 @@
               </v-menu>
             </v-col>
             <v-col class="pb-0" cols="12" lg="12">
-              <v-card
-                class="mx-2 px-2"
-                v-for="(item, i) in items"
-                :key="i"
-                outlined
-              >
+              <v-card class="px-4" v-for="(item, i) in items" :key="i" outlined>
                 <v-row>
                   <v-col cols="6">
                     <v-card-title> {{ item.product.name }}</v-card-title>
@@ -88,7 +83,7 @@
           </v-row>
         </v-form>
       </v-card-text>
-      <v-card-actions class="mr-6">
+      <v-card-actions class="mr-12">
         <v-spacer />
         <v-btn v-if="type !== 'detail'" color="primary" @click="save()"
           >Save</v-btn
@@ -147,6 +142,7 @@ export default Vue.extend({
 
     fillForm(item: any) {
       if (!item) return;
+      this.promotionId = item.id;
       const { type, validUntil } = item;
       const dataObj = {
         type,
@@ -167,13 +163,6 @@ export default Vue.extend({
       const payload = {
         type: this.createFields.type.value,
         validUntil: this.createFields.validUntil.value,
-      };
-      return payload;
-    },
-    payloadProduct(item) {
-      const payload = {
-        name: item.name,
-        code: item.code,
       };
       return payload;
     },
@@ -210,6 +199,7 @@ export default Vue.extend({
     discountPrice(oldPrice, discountPrice) {
       return this.formatCurrency(oldPrice - discountPrice);
     },
+
     validate() {
       return (
         this.$refs.form as Vue & {
