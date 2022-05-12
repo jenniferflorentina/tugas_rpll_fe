@@ -16,43 +16,10 @@
       <v-card-text class="my-4">
         <v-form class="px-4" ref="form">
           <v-row align="center" justify="center">
-            <v-col class="mt-1 pb-0" cols="6">
-              <v-text-field
-                v-model="createFields.status.value"
-                :label="createFields.status.label"
-                :disabled="isFormDisabled"
-                outlined
-              ></v-text-field>
-            </v-col>
-            <v-col class="mt-1 pb-0" cols="6">
+            <v-col class="mt-1 pb-0" cols="12">
               <v-text-field
                 v-model="createFields.createdAt.value"
                 :label="createFields.createdAt.label"
-                :disabled="isFormDisabled"
-                outlined
-              ></v-text-field>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col class="pb-0" cols="4">
-              <v-text-field
-                label="Nama Produk"
-                disabled
-                outlined
-              ></v-text-field>
-            </v-col>
-            <v-col class="pb-0" cols="4">
-              <v-text-field
-                v-model="createFields.quantity.value"
-                :label="createFields.quantity.label"
-                disabled
-                outlined
-              ></v-text-field>
-            </v-col>
-            <v-col class="pb-0" cols="4">
-              <v-text-field
-                v-model="createFields.amountToPay"
-                :label="createFields.amount.label"
                 :disabled="isFormDisabled"
                 outlined
               ></v-text-field>
@@ -69,19 +36,48 @@
                   <v-col cols="4">
                     <v-card-title>{{ item.product.name }}</v-card-title>
                   </v-col>
-                  <v-col cols="4">
+                  <v-col cols="3">
+                    <v-card-title>
+                      {{ formatCurrency(item.product.price) }}
+                    </v-card-title>
+                  </v-col>
+                  <v-col cols="1.5">
+                    <v-card-title>x{{ item.quantity }}</v-card-title>
+                  </v-col>
+                  <v-col cols="3">
                     <v-card-title>{{
-                      formatCurrency(item.product.price)
+                      formatCurrency(total(item))
                     }}</v-card-title>
                   </v-col>
-                  <v-col cols="4">
-                    <v-text-field
-                      v-model="item.quantity"
-                      :label="createFields.quantity.label"
-                      disabled
-                      outlined
-                    ></v-text-field>
-                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+          </v-row>
+          <v-row align="center" justify="center">
+            <v-col class="mt-2 pb-0" cols="12">
+              <v-card class="mt-2" outlined>
+                <v-row>
+                  <v-card-subtitle>Subtotal</v-card-subtitle>
+                  <v-spacer />
+                  <v-card-subtitle>
+                    {{ createFields.amount.value }}
+                  </v-card-subtitle>
+                </v-row>
+                <v-row v-if="paymentDetail.point !== 0">
+                  <v-card-subtitle>Point</v-card-subtitle>
+                  <v-spacer />
+                  <v-card-subtitle>
+                    {{ formatCurrency(paymentDetail.point) }}
+                  </v-card-subtitle>
+                </v-row>
+                <v-row>
+                  <v-card-subtitle
+                    >Pembayaran {{ paymentDetail.paymentMethod.name }}
+                  </v-card-subtitle>
+                  <v-spacer />
+                  <v-card-subtitle>
+                    {{ formatCurrency(paymentDetail.amount) }}
+                  </v-card-subtitle>
                 </v-row>
               </v-card>
             </v-col>
@@ -95,6 +91,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions } from 'vuex';
+import BaseService from '@/services/Base';
 
 export default Vue.extend({
   name: 'DetailDialog',
@@ -103,35 +100,11 @@ export default Vue.extend({
     isOpen: false,
     transactionId: '',
     transactionDetails: [] as any,
+    paymentDetail: [] as any,
     type: '',
     createFields: {
       createdAt: {
         label: 'Transaction Date',
-        type: 'string',
-        value: '',
-        rules: [],
-      },
-      status: {
-        label: 'Status Pesanan',
-        type: 'select',
-        items: ['On Process', 'Finish'],
-        value: '',
-        rules: [],
-      },
-      amount: {
-        label: 'Amount',
-        type: 'number',
-        value: '',
-        rules: [],
-      },
-      paymentStatus: {
-        label: 'Payment Status',
-        type: 'string',
-        value: '',
-        rules: [],
-      },
-      name: {
-        label: 'Nama',
         type: 'string',
         value: '',
         rules: [],
@@ -144,6 +117,18 @@ export default Vue.extend({
       },
       promotion: {
         label: 'Diskon',
+        type: 'number',
+        value: '',
+        rules: [],
+      },
+      total: {
+        label: 'Total',
+        type: 'number',
+        value: '',
+        rules: [],
+      },
+      amount: {
+        label: 'Amount',
         type: 'number',
         value: '',
         rules: [],
@@ -181,18 +166,19 @@ export default Vue.extend({
       if (type !== 'create') {
         this.fillForm(item);
         this.transactionId = item.id;
+        this.fetchPaymentById(item.id);
       }
     },
 
     fillForm(item: any) {
       if (!item) return;
-      const { status, member, createdAt, details } = item;
+      const { member, createdAt, details, amountToPay } = item;
       const dataObj = {
-        status,
-        name: member.name,
-        telephone: member.telephone,
+        name: member,
         createdAt,
         product: details,
+        productCategory: details,
+        amount: amountToPay,
       };
 
       const keys = Object.keys(dataObj);
@@ -205,10 +191,29 @@ export default Vue.extend({
           case 'createdAt':
             this.createFields[key].value = this.formatDate(dataObj[key]);
             break;
+          case 'amount':
+            this.createFields[key].value = this.formatCurrency(dataObj[key]);
+            break;
           default:
             break;
         }
       }
+    },
+
+    async fetchPaymentById(id) {
+      const service = new BaseService(`/transactions/${id}/payments`);
+      const res = await service.get('');
+      this.paymentDetail = res.data;
+    },
+
+    total(item) {
+      let result = 0;
+      if (item.product.productCategoryId === 1) {
+        result = item.product.price + item.quantity;
+      } else {
+        result = item.product.price * item.quantity;
+      }
+      return result;
     },
 
     formatCurrency(value) {
