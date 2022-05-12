@@ -1,12 +1,5 @@
 <template>
   <div>
-    <v-btn
-      v-if="this.authenticatedUser.role == 1"
-      @click.stop="dialog = true"
-      class="success"
-    >
-      <v-icon left> mdi-plus-circle </v-icon> Add New Product
-    </v-btn>
     <v-dialog v-model="dialog" max-width="50rem" scrollable>
       <v-card class="pb4">
         <v-toolbar class="px-4">
@@ -42,20 +35,14 @@
               clearable
               required
             ></v-text-field>
-            <v-row>
-              <v-col cols="4">
-                <v-subheader> Product Category </v-subheader>
-              </v-col>
-              <v-col cols="6">
-                <v-select
-                  v-model="select"
-                  :items="categoryList"
-                  :rules="[(v) => !!v || 'Product Category is required']"
-                  required
-                ></v-select>
-              </v-col>
-            </v-row>
-
+            <v-select
+              v-model="select"
+              label="Product Category"
+              :items="categoryList"
+              item-value="code"
+              :rules="[(v) => !!v || 'Product Category is required']"
+              required
+            ></v-select>
             <v-text-field
               label="Price"
               v-model="price"
@@ -72,9 +59,12 @@
               required
             ></v-text-field>
 
-            <v-btn class="success mx-0 mt-3" @click="submit()">
-              <v-icon left> mdi-plus-circle </v-icon> Add Product
-            </v-btn>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn class="primary mx-0 mt-3" @click="submit()">
+                <v-icon left> mdi-plus-circle </v-icon> Add Product
+              </v-btn>
+            </v-card-actions>
           </v-form>
         </v-card-text>
       </v-card>
@@ -123,6 +113,10 @@ export default Vue.extend({
   }),
   methods: {
     ...mapActions(['setLoading', 'setSnackbar']),
+    async startForm(item) {
+      this.dialog = true;
+      this.items = item;
+    },
     async uploadImage(file) {
       const formData = new FormData();
       formData.append('image', file);
@@ -132,7 +126,7 @@ export default Vue.extend({
     },
     async setupPayload() {
       const product = {
-        productCategoryId: this.select.code,
+        productCategoryId: Number(this.select),
         name: this.name,
         code: this.code,
         description: this.desc,
@@ -143,22 +137,13 @@ export default Vue.extend({
     },
     async submit() {
       try {
-        if (!this.$refs.form.validate()) {
-          return;
-        }
         this.setLoading(true);
         const service = new BaseService('/products');
 
         const product = await this.setupPayload();
         await service.post(product);
-        console.log(
-          this.select,
-          this.name,
-          this.code,
-          this.desc,
-          this.price,
-          this.stock
-        );
+
+        this.dialog = false;
         this.setLoading(false);
       } catch (e) {
         this.dialog = false;
