@@ -58,7 +58,6 @@
               clearable
               required
             ></v-text-field>
-
             <v-card-actions>
               <v-spacer />
               <v-btn class="primary mx-0 mt-3" @click="submit()">
@@ -142,7 +141,6 @@ export default Vue.extend({
 
         const product = await this.setupPayload();
         await service.post(product);
-
         this.dialog = false;
         this.setLoading(false);
       } catch (e) {

@@ -72,7 +72,6 @@
               :disabled="isFormDisabled"
               required
             ></v-select>
-
             <v-text-field
               label="Price"
               v-model="items.price"
@@ -91,7 +90,6 @@
               required
             >
             </v-text-field>
-
             <v-card-actions>
               <v-spacer />
               <v-btn
