@@ -10,6 +10,13 @@
         <v-toolbar class="px-4">
           <v-toolbar-title> {{ items.name }} </v-toolbar-title>
           <v-spacer></v-spacer>
+          <v-btn
+            v-if="this.authenticatedUser.role == 1 && type != 'edit'"
+            color="primary"
+            @click="type = 'edit'"
+          >
+            <v-icon> mdi-pencil </v-icon>
+          </v-btn>
           <v-btn icon @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -17,19 +24,26 @@
 
         <v-card-text class="pt-5">
           <v-form ref="form">
-            <v-file-input
-              label="File input"
-              prepend-icon="mdi-camera"
-              accept="image/*"
-              :disabled="this.authenticatedUser.role == 0"
-              :rules="[(v) => !!v || 'Image is required']"
-              v-model="items.image_url"
-            ></v-file-input>
+            <v-row>
+              <v-avatar class="ma-3" size="125" tile>
+                <image-view :imageUrl="items.imageurl"></image-view>
+              </v-avatar>
+              <v-col cols="2">
+                <v-btn
+                  color="primary"
+                  @click="addFile"
+                  :disabled="isFormDisabled"
+                >
+                  <v-icon left>mdi-image</v-icon> Change Image
+                </v-btn>
+              </v-col>
+            </v-row>
             <v-text-field
               label="Product Name"
               v-model="items.name"
               :rules="nameRules"
-              :disabled="this.authenticatedUser.role == 0"
+              :disabled="isFormDisabled"
+              class="mt-5"
               clearable
               required
             >
@@ -37,7 +51,7 @@
             <v-textarea
               label="Description"
               v-model="items.description"
-              :disabled="this.authenticatedUser.role == 0"
+              :disabled="isFormDisabled"
               clearable
             >
             </v-textarea>
@@ -45,31 +59,24 @@
               label="Product Code"
               v-model="items.code"
               :rules="codeRules"
-              :disabled="this.authenticatedUser.role == 0"
+              :disabled="isFormDisabled"
               clearable
               required
             ></v-text-field>
-            <v-row>
-              <v-col cols="4">
-                <v-subheader> Product Category </v-subheader>
-              </v-col>
-              <v-col cols="6">
-                <v-select
-                  v-model="select"
-                  :items="categoryList"
-                  item-text="text"
-                  :rules="[(v) => !!v || 'Product Category is required']"
-                  :disabled="this.authenticatedUser.role == 0"
-                  required
-                ></v-select>
-              </v-col>
-            </v-row>
-
+            <v-select
+              v-model="select"
+              label="Product Category"
+              :items="categoryList"
+              item-text="text"
+              :rules="[(v) => !!v || 'Product Category is required']"
+              :disabled="isFormDisabled"
+              required
+            ></v-select>
             <v-text-field
               label="Price"
               v-model="items.price"
               prefix="Rp"
-              :disabled="this.authenticatedUser.role == 0"
+              :disabled="isFormDisabled"
               :rules="priceRules"
               required
             >
@@ -79,22 +86,29 @@
               value="1"
               v-model="items.stock"
               :rules="stockRules"
-              :disabled="this.authenticatedUser.role == 0"
+              :disabled="isFormDisabled"
               required
             >
             </v-text-field>
-
-            <v-btn
-              v-if="this.authenticatedUser.role == 1"
-              class="success mx-0 mt-3"
-              @click="update()"
-            >
-              <v-icon left> mdi-pencil </v-icon> Edit Product
-            </v-btn>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                v-if="this.authenticatedUser.role == 1 && type == 'edit'"
+                class="primary justify-end"
+                @click="update()"
+              >
+                <v-icon left> mdi-content-save-edit </v-icon> Save Product
+              </v-btn>
+            </v-card-actions>
           </v-form>
         </v-card-text>
       </v-card>
     </v-dialog>
+    <AddFileDialog
+      ref="addFileDialog"
+      @change="onChangeFile"
+      :fileType="'.jpeg, .png'"
+    />
   </div>
 </template>
 
@@ -102,18 +116,17 @@
 import Vue from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import BaseService from '@/services/Base';
+import AddFileDialog from '@/views/product/UploadFileDialog.vue';
+import ImageView from '@/components/atom/ImageView.vue';
 
 export default Vue.extend({
   name: 'EditProduct',
+  components: { AddFileDialog, ImageView },
   data: () => ({
     dialog: false,
     items: [] as any,
     select: { text: ' ', code: ' ' },
-    name: '',
-    desc: '',
-    code: '',
-    price: 0,
-    stock: 0,
+    type: '',
     categoryList: [
       { text: 'Digital', code: '1' },
       { text: 'Makanan', code: '2' },
@@ -144,14 +157,17 @@ export default Vue.extend({
     this.setLoading(true);
     this.setLoading(false);
   },
+
   computed: {
     ...mapGetters(['authenticatedUser']),
+    isFormDisabled(): boolean {
+      return this.type === 'detail';
+    },
   },
 
   methods: {
     ...mapActions(['setLoading', 'setSnackbar']),
     async setProductCategory(id) {
-      console.log(id);
       switch (id) {
         case 1:
           this.select.text = 'Digital';
@@ -177,37 +193,59 @@ export default Vue.extend({
           break;
       }
     },
-    async startForm(item) {
+    async startForm(item, type) {
       this.dialog = true;
       this.items = item;
+      this.type = type;
       this.setProductCategory(this.items.productCategoryId);
+    },
+    addFile() {
+      (
+        this.$refs.addFileDialog as Vue & { toggleShowModal: () => void }
+      ).toggleShowModal();
+    },
+
+    async onChangeFile(file) {
+      try {
+        this.setLoading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const uploadService = new BaseService(
+          `/products/${this.items.id}/images`
+        );
+        await uploadService.upload(formData);
+        this.dialog = false;
+        this.setLoading(false);
+      } catch (e) {
+        this.setSnackbar({
+          isVisible: true,
+          message: e,
+          color: 'error',
+        });
+      } finally {
+        this.setLoading(false);
+      }
     },
     async setupPayload() {
       const product = {
-        productCategoryId: this.select.code,
-        name: this.name,
-        code: this.code,
-        description: this.desc,
-        price: this.price,
-        stock: this.stock,
+        productCategoryId: Number(this.select.code),
+        name: this.items.name,
+        code: this.items.code,
+        description: this.items.description,
+        price: this.items.price,
+        stock: this.items.stock,
       };
       return product;
     },
     async update() {
       try {
         this.setLoading(true);
-        const service = new BaseService('/products/:id');
+        const service = new BaseService('/products');
         const product = await this.setupPayload();
-        await service.post(product);
+        await service.put(this.items.id, product);
 
-        console.log(
-          this.select,
-          this.name,
-          this.code,
-          this.desc,
-          this.price,
-          this.stock
-        );
+        this.dialog = false;
         this.setLoading(false);
       } catch (e) {
         this.setLoading(false);
