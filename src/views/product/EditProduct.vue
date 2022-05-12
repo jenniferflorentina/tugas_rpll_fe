@@ -122,6 +122,7 @@ import ImageView from '@/components/atom/ImageView.vue';
 export default Vue.extend({
   name: 'EditProduct',
   components: { AddFileDialog, ImageView },
+  props: ['refresh'],
   data: () => ({
     dialog: false,
     items: [] as any,
@@ -216,6 +217,7 @@ export default Vue.extend({
         );
         await uploadService.upload(formData);
         this.dialog = false;
+        this.refresh();
         this.setLoading(false);
       } catch (e) {
         this.setSnackbar({

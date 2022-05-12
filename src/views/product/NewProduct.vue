@@ -11,13 +11,6 @@
         </v-toolbar>
         <v-card-text class="pt-5">
           <v-form ref="form">
-            <v-file-input
-              label="File input"
-              prepend-icon="mdi-camera"
-              :rules="imageRules"
-              accept="image/*"
-            >
-            </v-file-input>
             <v-text-field
               label="Product Name"
               v-model="name"
@@ -59,6 +52,9 @@
               required
             ></v-text-field>
             <v-card-actions>
+              <v-btn v-if="id !== null" color="primary" @click="addFile">
+                <v-icon left>mdi-image</v-icon> Add Image
+              </v-btn>
               <v-spacer />
               <v-btn class="primary mx-0 mt-3" @click="submit()">
                 <v-icon left> mdi-plus-circle </v-icon> Add Product
@@ -68,6 +64,11 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <AddFileDialog
+      ref="addFileDialog"
+      @change="onChangeFile"
+      :fileType="'.jpeg, .png'"
+    />
   </div>
 </template>
 
@@ -75,8 +76,11 @@
 import Vue from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import BaseService from '@/services/Base';
+import AddFileDialog from '@/views/product/UploadFileDialog.vue';
 
 export default Vue.extend({
+  props: ['refresh'],
+  components: { AddFileDialog },
   data: () => ({
     dialog: false,
     name: '',
@@ -85,6 +89,7 @@ export default Vue.extend({
     select: null,
     price: 0,
     stock: 0,
+    id: null,
     categoryList: [
       { text: 'Digital', code: '1' },
       { text: 'Makanan', code: '2' },
@@ -110,18 +115,44 @@ export default Vue.extend({
       (v) => v > 0 || 'Stock must be more than 0',
     ],
   }),
+
+  computed: {
+    ...mapGetters(['authenticatedUser']),
+  },
+
   methods: {
     ...mapActions(['setLoading', 'setSnackbar']),
     async startForm(item) {
       this.dialog = true;
       this.items = item;
     },
-    async uploadImage(file) {
-      const formData = new FormData();
-      formData.append('image', file);
 
-      const uploadService = new BaseService('/product/:id/images');
-      await uploadService.upload(formData);
+    // addFile() {
+    //   (
+    //     this.$refs.addFileDialog as Vue & { toggleShowModal: () => void }
+    //   ).toggleShowModal();
+    // },
+
+    async onChangeFile(file) {
+      try {
+        this.setLoading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const uploadService = new BaseService(`/products/${this.id}/images`);
+        await uploadService.upload(formData);
+        this.dialog = false;
+        this.refresh();
+        this.setLoading(false);
+      } catch (e) {
+        this.setSnackbar({
+          isVisible: true,
+          message: e,
+          color: 'error',
+        });
+      } finally {
+        this.setLoading(false);
+      }
     },
     async setupPayload() {
       const product = {
@@ -129,8 +160,8 @@ export default Vue.extend({
         name: this.name,
         code: this.code,
         description: this.desc,
-        price: this.price,
-        stock: this.stock,
+        price: Number(this.price),
+        stock: Number(this.stock),
       };
       return product;
     },
@@ -140,8 +171,9 @@ export default Vue.extend({
         const service = new BaseService('/products');
 
         const product = await this.setupPayload();
-        await service.post(product);
-        this.dialog = false;
+        const res = await service.post(product);
+        this.id = res.data.Id;
+        this.refresh();
         this.setLoading(false);
       } catch (e) {
         this.dialog = false;
@@ -153,9 +185,6 @@ export default Vue.extend({
         });
       }
     },
-  },
-  computed: {
-    ...mapGetters(['authenticatedUser']),
   },
 });
 </script>
