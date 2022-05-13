@@ -51,11 +51,24 @@
               clearable
               required
             ></v-text-field>
+            <input
+              id="upload"
+              ref="documentUpload"
+              class="d-none"
+              type="file"
+              accept=".jpg, .jpeg, .png"
+              @change="onChangeFile"
+            />
+            <v-row v-if="imgUrl !== null" class="pb-0 pr-1">
+              <img
+                height="150"  
+                :src="imgUrl" />
+            </v-row>
             <v-card-actions>
-              <v-btn v-if="id !== null" color="primary" @click="addFile">
+              <v-btn color="primary" @click="addFile">
                 <v-icon left>mdi-image</v-icon> Add Image
               </v-btn>
-              <v-spacer />
+              <v-spacer></v-spacer>
               <v-btn class="primary mx-0 mt-3" @click="submit()">
                 <v-icon left> mdi-plus-circle </v-icon> Add Product
               </v-btn>
@@ -64,23 +77,17 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <AddFileDialog
-      ref="addFileDialog"
-      @change="onChangeFile"
-      :fileType="'.jpeg, .png'"
-    />
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 import { mapGetters, mapActions } from 'vuex';
 import BaseService from '@/services/Base';
-import AddFileDialog from '@/views/product/UploadFileDialog.vue';
 
 export default Vue.extend({
+  name: 'NewProduct',
   props: ['refresh'],
-  components: { AddFileDialog },
   data: () => ({
     dialog: false,
     name: '',
@@ -89,6 +96,9 @@ export default Vue.extend({
     select: null,
     price: 0,
     stock: 0,
+    formData : new FormData(),
+    file: null as any,
+    imgUrl: null as any,
     id: null,
     categoryList: [
       { text: 'Digital', code: '1' },
@@ -124,36 +134,26 @@ export default Vue.extend({
     ...mapActions(['setLoading', 'setSnackbar']),
     async startForm(item) {
       this.dialog = true;
-      this.items = item;
     },
 
-    // addFile() {
-    //   (
-    //     this.$refs.addFileDialog as Vue & { toggleShowModal: () => void }
-    //   ).toggleShowModal();
-    // },
-
-    async onChangeFile(file) {
-      try {
-        this.setLoading(true);
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const uploadService = new BaseService(`/products/${this.id}/images`);
-        await uploadService.upload(formData);
-        this.dialog = false;
-        this.refresh();
-        this.setLoading(false);
-      } catch (e) {
-        this.setSnackbar({
-          isVisible: true,
-          message: e,
-          color: 'error',
-        });
-      } finally {
-        this.setLoading(false);
-      }
+    addFile() {
+      const el: HTMLElement | null = document.getElementById("upload");
+      return el === null ? null : el.click();
     },
+    onChangeFile(e: Event) {
+      if (!e) return;
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+      // @ts-ignore: Object is possibly 'null'.
+      const file = (e.target as HTMLInputElement).files[0];
+      this.setLoading(true);
+      this.formData = new FormData();
+      this.formData.append('image', file);
+      this.file = file;
+      this.imgUrl = URL.createObjectURL(file);
+      this.setLoading(false);
+    },
+
     async setupPayload() {
       const product = {
         productCategoryId: Number(this.select),
@@ -173,6 +173,10 @@ export default Vue.extend({
         const product = await this.setupPayload();
         const res = await service.post(product);
         this.id = res.data.Id;
+
+        const uploadService = new BaseService(`/products/${this.id}/images`);
+        await uploadService.upload(this.formData);
+        this.dialog = false;
         this.refresh();
         this.setLoading(false);
       } catch (e) {
