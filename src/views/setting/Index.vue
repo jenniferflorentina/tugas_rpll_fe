@@ -6,6 +6,7 @@
       </v-col>
       <v-col cols="12">
         <v-btn
+          v-if="authenticatedUser.role === 1"
           style="float: right"
           color="primary"
           @click="openCreateForm(null, 'add')"
@@ -25,7 +26,11 @@
                 <v-card-text> {{ item.validUntil }}</v-card-text>
               </v-col>
               <v-col cols="2" align-self="center">
-                <v-btn outlined @click="openEditForm(item, 'edit')">
+                <v-btn
+                  v-if="authenticatedUser.role === 1"
+                  outlined
+                  @click="openEditForm(item, 'edit')"
+                >
                   Edit
                 </v-btn>
               </v-col>
@@ -56,7 +61,7 @@
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import BaseService from '@/services/Base';
 import EditDialog from '@/views/setting/EditDialog.vue';
 import CreateDialog from '@/views/setting/CreateDialog.vue';
@@ -99,6 +104,10 @@ export default Vue.extend({
     this.setLoading(true);
     await this.refresh();
     this.setLoading(false);
+  },
+
+  computed: {
+    ...mapGetters(['authenticatedUser']),
   },
 
   methods: {

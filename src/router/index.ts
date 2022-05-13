@@ -6,9 +6,6 @@ import VueRouter, { RouteConfig } from 'vue-router';
 import Admin from '@/components/layouts/full-layout/Layout.vue';
 import Manager from '@/components/layouts/full-layout-manager/Layout.vue';
 
-// views for Auth layout
-import History from '@/views/user/history/Index.vue';
-
 // views without layouts
 import LandingPage from '@/views/Landing.vue';
 
@@ -106,10 +103,6 @@ const routes: Array<RouteConfig> = [
           ),
       },
     ],
-  },
-  {
-    path: '/history',
-    component: History,
   },
   {
     path: '/',
