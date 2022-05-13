@@ -11,13 +11,13 @@
           <v-toolbar-title> {{ items.name }} </v-toolbar-title>
           <v-spacer></v-spacer>
           <v-btn
-            v-if="this.authenticatedUser.role == 1 && type != 'edit'"
+            v-if="authenticatedUser.role == 1 && type != 'edit'"
             color="primary"
             @click="type = 'edit'"
           >
             <v-icon> mdi-pencil </v-icon>
           </v-btn>
-          <v-btn icon @click="dialog = false">
+          <v-btn icon @click="closeForm">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-toolbar>
@@ -70,6 +70,7 @@
               item-text="text"
               :rules="[(v) => !!v || 'Product Category is required']"
               :disabled="isFormDisabled"
+              return-object
               required
             ></v-select>
             <v-text-field
@@ -93,7 +94,7 @@
             <v-card-actions>
               <v-spacer />
               <v-btn
-                v-if="this.authenticatedUser.role == 1 && type == 'edit'"
+                v-if="authenticatedUser.role == 1 && type == 'edit'"
                 class="primary justify-end"
                 @click="update()"
               >
@@ -126,7 +127,7 @@ export default Vue.extend({
   data: () => ({
     dialog: false,
     items: [] as any,
-    select: { text: ' ', code: ' ' },
+    select: { text: '' as any, code: '' as any },
     type: '',
     categoryList: [
       { text: 'Digital', code: '1' },
@@ -168,27 +169,22 @@ export default Vue.extend({
 
   methods: {
     ...mapActions(['setLoading', 'setSnackbar']),
-    async setProductCategory(id) {
+    setProductCategory(id) {
       switch (id) {
         case 1:
-          this.select.text = 'Digital';
-          this.select.code = '1';
+          this.select = { text: 'Digital', code: '1' };
           break;
         case 2:
-          this.select.text = 'Makanan';
-          this.select.code = '2';
+          this.select = { text: 'Makanan', code: '2' };
           break;
         case 3:
-          this.select.text = 'Minuman';
-          this.select.code = '3';
+          this.select = { text: 'Minuman', code: '3' };
           break;
         case 4:
-          this.select.text = 'Kebutuhan Rumah Tangga';
-          this.select.code = '4';
+          this.select = { text: 'Kebutuhan Rumah Tangga', code: '4' };
           break;
         case 5:
-          this.select.text = 'Kecantikan';
-          this.select.code = '5';
+          this.select = { text: 'Kecantikan', code: '5' };
           break;
         default:
           break;
@@ -239,6 +235,11 @@ export default Vue.extend({
         stock: this.items.stock,
       };
       return product;
+    },
+    closeForm() {
+      this.dialog = false;
+      (this.$refs.form as Vue & { reset: () => void }).reset();
+      this.$forceUpdate();
     },
     async update() {
       try {
