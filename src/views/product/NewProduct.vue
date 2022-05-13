@@ -60,9 +60,7 @@
               @change="onChangeFile"
             />
             <v-row v-if="imgUrl !== null" class="pb-0 pr-1">
-              <img
-                height="150"  
-                :src="imgUrl" />
+              <img height="150" :src="imgUrl" />
             </v-row>
             <v-card-actions>
               <v-btn color="primary" @click="addFile">
@@ -96,7 +94,7 @@ export default Vue.extend({
     select: null,
     price: 0,
     stock: 0,
-    formData : new FormData(),
+    formData: new FormData(),
     file: null as any,
     imgUrl: null as any,
     id: null,
@@ -122,7 +120,7 @@ export default Vue.extend({
     ],
     stockRules: [
       (v) => !!v || 'Stock is required',
-      (v) => v > 0 || 'Stock must be more than 0',
+      (v) => v >= 0 || 'Stock must be more than 0',
     ],
   }),
 
@@ -132,12 +130,12 @@ export default Vue.extend({
 
   methods: {
     ...mapActions(['setLoading', 'setSnackbar']),
-    async startForm(item) {
+    async startForm() {
       this.dialog = true;
     },
 
     addFile() {
-      const el: HTMLElement | null = document.getElementById("upload");
+      const el: HTMLElement | null = document.getElementById('upload');
       return el === null ? null : el.click();
     },
     onChangeFile(e: Event) {
@@ -177,6 +175,7 @@ export default Vue.extend({
         const uploadService = new BaseService(`/products/${this.id}/images`);
         await uploadService.upload(this.formData);
         this.dialog = false;
+        (this.$refs.form as Vue & { reset: () => void }).reset();
         this.refresh();
         this.setLoading(false);
       } catch (e) {

@@ -151,7 +151,7 @@ export default Vue.extend({
     ],
     stockRules: [
       (v) => !!v || 'Stock is required',
-      (v) => v > 0 || 'Stock must be more than 0',
+      (v) => v >= 0 || 'Stock must be more than 0',
     ],
   }),
 
@@ -231,8 +231,8 @@ export default Vue.extend({
         name: this.items.name,
         code: this.items.code,
         description: this.items.description,
-        price: this.items.price,
-        stock: this.items.stock,
+        price: Number(this.items.price),
+        stock: Number(this.items.stock),
       };
       return product;
     },

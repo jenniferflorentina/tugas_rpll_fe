@@ -9,7 +9,7 @@
           v-if="this.authenticatedUser.role === 1"
           style="float: right"
           color="primary"
-          @click="openCreateForm(null)"
+          @click="openCreateForm()"
         >
           Add New Product <v-icon small right>mdi-card-plus-outline</v-icon>
         </v-btn>
@@ -95,9 +95,9 @@ export default Vue.extend({
       const { openEditProduct }: any = this.$refs;
       openEditProduct.startForm(item, type);
     },
-    async openCreateForm(item) {
+    async openCreateForm() {
       const { openCreateProduct }: any = this.$refs;
-      openCreateProduct.startForm(item);
+      openCreateProduct.startForm();
     },
   },
 });
